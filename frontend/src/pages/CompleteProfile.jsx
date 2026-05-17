@@ -93,51 +93,116 @@ const CompleteProfile = () => {
 
   // EXTRACTION DATA
 
-  useEffect(() => {
-    if (extractedData) {
-      setFormData((prev) => ({
-        ...prev,
+ // EXTRACTION DATA
 
-        fullName:
-          extractedData.student_name ||
-          "",
+useEffect(() => {
+  if (!extractedData) return;
 
-        percentage:
-          extractedData.percentage ||
-          "",
+  // HANDLE BOTH API FORMATS
 
-        subjects:
-          extractedData.subjects ||
-          [],
+  const studentName =
+    extractedData?.student_name ||
+    extractedData?.[
+      "Student Name"
+    ] ||
+    extractedData?.studentName ||
+    "";
 
-        marks:
-          extractedData.subjects?.map(
-            (
-              subject
-            ) =>
-              extractedData
-                .marks?.[
-                subject
-              ] || ""
-          ) || [],
+  const subjects =
+    extractedData?.subjects ||
+    extractedData?.Subjects ||
+    [];
 
-        grades:
-          extractedData.subjects?.map(
-            (
-              subject
-            ) =>
-              extractedData
-                .grades?.[
-                subject
-              ] || ""
-          ) || [],
+  const marks =
+    extractedData?.marks ||
+    extractedData?.Marks ||
+    {};
 
-        skills:
-          extractedData.skills ||
-          [],
-      }));
-    }
-  }, [extractedData]);
+  const grades =
+    extractedData?.grades ||
+    extractedData?.Grades ||
+    {};
+
+  const percentage =
+    extractedData?.percentage ||
+    extractedData?.Percentage ||
+    "";
+
+  const skills =
+    extractedData?.skills ||
+    extractedData?.Skills ||
+    extractedData?.skills_if_certificate ||
+    extractedData?.[
+      "Skills if certificate"
+    ] ||
+    [];
+
+  // SAFE ARRAY
+
+  const safeSubjects =
+    Array.isArray(subjects)
+      ? subjects
+      : [];
+
+  // SAFE OBJECTS
+
+  const safeMarks =
+    typeof marks === "object"
+      ? marks
+      : {};
+
+  const safeGrades =
+    typeof grades ===
+    "object"
+      ? grades
+      : {};
+
+  // CONVERT OBJECT → ARRAY
+
+  const marksArray =
+    safeSubjects.map(
+      (subject) =>
+        safeMarks?.[
+          subject
+        ] || ""
+    );
+
+  const gradesArray =
+    safeSubjects.map(
+      (subject) =>
+        safeGrades?.[
+          subject
+        ] || ""
+    );
+
+  setFormData((prev) => ({
+    ...prev,
+
+    fullName:
+      studentName,
+
+    percentage:
+      percentage,
+
+    subjects:
+      safeSubjects,
+
+    marks:
+      marksArray,
+
+    grades:
+      gradesArray,
+
+    skills:
+      Array.isArray(
+        skills
+      )
+        ? skills
+        : skills
+        ? [skills]
+        : [],
+  }));
+}, [extractedData]);
 
   // FETCH PROFILE
 
