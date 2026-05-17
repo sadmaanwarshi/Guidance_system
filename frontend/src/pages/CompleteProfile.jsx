@@ -91,7 +91,7 @@ const CompleteProfile = () => {
     setInterestInput] =
     useState("");
 
-  // EXTRACTION DATA
+  // LOAD EXTRACTED DATA
 
   useEffect(() => {
     if (extractedData) {
@@ -107,34 +107,34 @@ const CompleteProfile = () => {
           "",
 
         subjects:
-          extractedData.subjects ||
-          [],
+          Array.isArray(
+            extractedData.subjects
+          )
+            ? extractedData.subjects
+            : [],
+
+        // FIXED
 
         marks:
-          extractedData.subjects?.map(
-            (
-              subject
-            ) =>
-              extractedData
-                .marks?.[
-                subject
-              ] || ""
-          ) || [],
+          Array.isArray(
+            extractedData.marks
+          )
+            ? extractedData.marks
+            : [],
 
         grades:
-          extractedData.subjects?.map(
-            (
-              subject
-            ) =>
-              extractedData
-                .grades?.[
-                subject
-              ] || ""
-          ) || [],
+          Array.isArray(
+            extractedData.grades
+          )
+            ? extractedData.grades
+            : [],
 
         skills:
-          extractedData.skills ||
-          [],
+          extractedData.skills_if_certificate
+            ? [
+                extractedData.skills_if_certificate,
+              ]
+            : [],
       }));
     }
   }, [extractedData]);
@@ -151,6 +151,11 @@ const CompleteProfile = () => {
             localStorage.getItem(
               "studentId"
             );
+
+          if (!studentId) {
+            setLoading(false);
+            return;
+          }
 
           const res =
             await API.get(
@@ -229,7 +234,7 @@ const CompleteProfile = () => {
           }
         } catch (error) {
           console.log(
-            "NEW PROFILE"
+            "New Profile"
           );
         } finally {
           setLoading(false);
@@ -310,25 +315,7 @@ const CompleteProfile = () => {
           return;
         }
 
-        // AUTO ADD INPUTS
-
-        const updatedSkills =
-          [
-            ...new Set([
-              ...formData.skills,
-              skillInput.trim(),
-            ]),
-          ].filter(Boolean);
-
-        const updatedInterests =
-          [
-            ...new Set([
-              ...formData.interests,
-              interestInput.trim(),
-            ]),
-          ].filter(Boolean);
-
-        // CLEAN ARRAYS
+        // CLEAN ARRAY
 
         const cleanArray = (
           arr
@@ -336,7 +323,9 @@ const CompleteProfile = () => {
           arr
             .filter(Boolean)
             .map((item) =>
-              item.trim()
+              String(
+                item
+              ).trim()
             );
 
         const payload = {
@@ -358,7 +347,8 @@ const CompleteProfile = () => {
 
           marks:
             formData.marks.map(
-              Number
+              (m) =>
+                Number(m) || 0
             ),
 
           grades:
@@ -367,10 +357,14 @@ const CompleteProfile = () => {
             ),
 
           skills:
-            updatedSkills,
+            cleanArray(
+              formData.skills
+            ),
 
           interests:
-            updatedInterests,
+            cleanArray(
+              formData.interests
+            ),
 
           goals:
             cleanArray(
@@ -488,7 +482,7 @@ const CompleteProfile = () => {
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-6xl p-6 lg:p-8 text-white">
+      <div className="mx-auto max-w-6xl p-6 text-white lg:p-8">
         {/* HEADER */}
 
         <div className="mb-8">
@@ -558,7 +552,7 @@ const CompleteProfile = () => {
         {/* STEP 1 */}
 
         {step === 1 && (
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 lg:p-8 backdrop-blur-xl">
+          <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl lg:p-8">
             <h2 className="mb-8 text-2xl font-bold lg:text-3xl">
               Academic Details
             </h2>
@@ -633,7 +627,7 @@ const CompleteProfile = () => {
                               formData
                                 .subjects[
                                 index
-                              ]
+                              ] || ""
                             }
                             onChange={(
                               e
@@ -668,7 +662,7 @@ const CompleteProfile = () => {
                               formData
                                 .marks[
                                 index
-                              ]
+                              ] || ""
                             }
                             onChange={(
                               e
@@ -703,7 +697,7 @@ const CompleteProfile = () => {
                               formData
                                 .grades[
                                 index
-                              ]
+                              ] || ""
                             }
                             onChange={(
                               e
@@ -752,13 +746,11 @@ const CompleteProfile = () => {
         {/* STEP 2 */}
 
         {step === 2 && (
-          <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 lg:p-8 backdrop-blur-xl">
+          <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl lg:p-8">
             <h2 className="mb-8 text-2xl font-bold lg:text-3xl">
               Career &
               Personality
             </h2>
-
-            {/* SKILLS */}
 
             <SectionTitle
               title="Skills"
@@ -777,8 +769,6 @@ const CompleteProfile = () => {
                 formData.skills
               }
             />
-
-            {/* INTERESTS */}
 
             <SectionTitle
               title="Interests"
@@ -802,15 +792,11 @@ const CompleteProfile = () => {
               }
             />
 
-            {/* TEXT AREAS */}
-
             <TextAreaField
               title="Goals"
-              defaultValue={
-                formData.goals.join(
-                  ", "
-                )
-              }
+              value={formData.goals.join(
+                ", "
+              )}
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -826,11 +812,9 @@ const CompleteProfile = () => {
 
             <TextAreaField
               title="Hobbies"
-              defaultValue={
-                formData.hobbies.join(
-                  ", "
-                )
-              }
+              value={formData.hobbies.join(
+                ", "
+              )}
               onChange={(e) =>
                 setFormData({
                   ...formData,
@@ -843,146 +827,6 @@ const CompleteProfile = () => {
                 })
               }
             />
-
-            <TextAreaField
-              title="Certifications"
-              defaultValue={
-                formData.certifications.join(
-                  ", "
-                )
-              }
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  certifications:
-                    e.target.value
-                      .split(",")
-                      .map((i) =>
-                        i.trim()
-                      ),
-                })
-              }
-            />
-
-            <TextAreaField
-              title="Preferred Careers"
-              defaultValue={
-                formData.preferredCareers.join(
-                  ", "
-                )
-              }
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  preferredCareers:
-                    e.target.value
-                      .split(",")
-                      .map((i) =>
-                        i.trim()
-                      ),
-                })
-              }
-            />
-
-            <TextAreaField
-              title="Personality Traits"
-              defaultValue={
-                formData.personalityTraits.join(
-                  ", "
-                )
-              }
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  personalityTraits:
-                    e.target.value
-                      .split(",")
-                      .map((i) =>
-                        i.trim()
-                      ),
-                })
-              }
-            />
-
-            <TextAreaField
-              title="Strengths"
-              defaultValue={
-                formData.strengths.join(
-                  ", "
-                )
-              }
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  strengths:
-                    e.target.value
-                      .split(",")
-                      .map((i) =>
-                        i.trim()
-                      ),
-                })
-              }
-            />
-
-            <TextAreaField
-              title="Weaknesses"
-              defaultValue={
-                formData.weaknesses.join(
-                  ", "
-                )
-              }
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  weaknesses:
-                    e.target.value
-                      .split(",")
-                      .map((i) =>
-                        i.trim()
-                      ),
-                })
-              }
-            />
-
-            {/* STREAM */}
-
-            <div className="mt-6">
-              <label className="mb-2 block text-sm font-medium text-gray-300">
-                Academic Type
-              </label>
-
-              <select
-                value={
-                  formData.academicType
-                }
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    academicType:
-                      e.target.value,
-                  })
-                }
-                className="w-full rounded-2xl border border-white/10 bg-[#1b2140] px-5 py-4 text-sm outline-none focus:border-cyan-400"
-              >
-                <option value="">
-                  Select Stream
-                </option>
-
-                <option value="Science">
-                  Science
-                </option>
-
-                <option value="Commerce">
-                  Commerce
-                </option>
-
-                <option value="Arts">
-                  Arts
-                </option>
-              </select>
-            </div>
-
-            {/* BUTTONS */}
 
             <div className="mt-8 flex items-center justify-between">
               <button
@@ -999,12 +843,11 @@ const CompleteProfile = () => {
                   handleSubmit
                 }
                 disabled={saving}
-                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 px-8 py-4 text-sm font-semibold text-white transition-all hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 px-8 py-4 text-sm font-semibold text-white"
               >
                 {saving ? (
                   <>
                     <Loader2 className="animate-spin" />
-
                     Saving...
                   </>
                 ) : (
@@ -1098,7 +941,7 @@ const TagList = ({
 
 const TextAreaField = ({
   title,
-  defaultValue,
+  value,
   onChange,
 }) => (
   <div className="mt-6">
@@ -1108,9 +951,7 @@ const TextAreaField = ({
 
     <textarea
       rows={4}
-      defaultValue={
-        defaultValue
-      }
+      value={value}
       placeholder={`Add ${title}`}
       onChange={onChange}
       className="w-full rounded-3xl border border-white/10 bg-[#1b2140] px-5 py-5 text-sm outline-none focus:border-cyan-400"

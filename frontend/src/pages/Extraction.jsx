@@ -9,7 +9,6 @@ import {
 } from "react-router-dom";
 
 import {
-  Loader2,
   AlertCircle,
   CheckCircle2,
   FileText,
@@ -145,6 +144,8 @@ const Extraction = () => {
   const document =
     data?.document || {};
 
+  // FIXED DATA ACCESS
+
   const studentName =
     extracted?.student_name ||
     "Unknown Student";
@@ -157,23 +158,30 @@ const Extraction = () => {
       : [];
 
   const marks =
-    extracted?.marks || {};
+    Array.isArray(
+      extracted?.marks
+    )
+      ? extracted.marks
+      : [];
 
   const grades =
-    extracted?.grades || {};
+    Array.isArray(
+      extracted?.grades
+    )
+      ? extracted.grades
+      : [];
 
   const percentage =
     extracted?.percentage ||
     0;
 
   const skills =
-    extracted?.skills ||
     extracted?.skills_if_certificate ||
     "";
 
   return (
     <MainLayout>
-      <div className="mx-auto max-w-7xl p-6 lg:p-8 text-white">
+      <div className="mx-auto max-w-7xl p-6 text-white lg:p-8">
         {/* HEADER */}
 
         <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -275,7 +283,7 @@ const Extraction = () => {
           </div>
         </div>
 
-        {/* STUDENT */}
+        {/* STUDENT DETAILS */}
 
         <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
           <div className="grid gap-5 md:grid-cols-3">
@@ -295,7 +303,7 @@ const Extraction = () => {
             />
           </div>
 
-          {/* TABLE */}
+          {/* SUBJECT TABLE */}
 
           <div className="mt-10">
             <h2 className="mb-5 text-2xl font-bold">
@@ -334,6 +342,8 @@ const Extraction = () => {
                           }
                           className="border-t border-white/10"
                         >
+                          {/* SUBJECT */}
+
                           <td className="px-5 py-4">
                             <input
                               type="text"
@@ -344,26 +354,30 @@ const Extraction = () => {
                             />
                           </td>
 
+                          {/* MARKS */}
+
                           <td className="px-5 py-4">
                             <input
                               type="text"
                               defaultValue={
                                 marks[
-                                  subject
-                                ] ||
+                                  index
+                                ] ??
                                 ""
                               }
                               className="w-full rounded-xl border border-white/10 bg-[#1b2140] px-4 py-3 text-sm outline-none"
                             />
                           </td>
 
+                          {/* GRADES */}
+
                           <td className="px-5 py-4">
                             <input
                               type="text"
                               defaultValue={
                                 grades[
-                                  subject
-                                ] ||
+                                  index
+                                ] ??
                                 ""
                               }
                               className="w-full rounded-xl border border-white/10 bg-[#1b2140] px-4 py-3 text-sm outline-none"

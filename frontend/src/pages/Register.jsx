@@ -224,7 +224,7 @@ const Register = () => {
               <input
                 type="text"
                 name="name"
-                placeholder="Sadmaan Warshi"
+                placeholder="John Dae"
                 value={
                   formData.name
                 }
