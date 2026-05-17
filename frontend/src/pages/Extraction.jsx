@@ -102,7 +102,7 @@ const Extraction = () => {
     );
   }
 
-  // ERROR UI
+  // ERROR
 
   if (error || !data) {
     return (
@@ -135,49 +135,73 @@ const Extraction = () => {
     );
   }
 
-  // SAFE DATA
+  // DOCUMENT
+
+  const document =
+    data?.document || {};
+
+  // SAFE EXTRACTION
 
   const extracted =
     data?.extractedData ||
     {};
 
-  const document =
-    data?.document || {};
-
-  // FIXED DATA ACCESS
+  // HANDLE BOTH API FORMATS
 
   const studentName =
     extracted?.student_name ||
+    extracted?.[
+      "Student Name"
+    ] ||
+    extracted?.studentName ||
     "Unknown Student";
 
   const subjects =
-    Array.isArray(
-      extracted?.subjects
-    )
-      ? extracted.subjects
-      : [];
+    extracted?.subjects ||
+    extracted?.Subjects ||
+    [];
 
   const marks =
-    Array.isArray(
-      extracted?.marks
-    )
-      ? extracted.marks
-      : [];
+    extracted?.marks ||
+    extracted?.Marks ||
+    {};
 
   const grades =
-    Array.isArray(
-      extracted?.grades
-    )
-      ? extracted.grades
-      : [];
+    extracted?.grades ||
+    extracted?.Grades ||
+    {};
 
   const percentage =
     extracted?.percentage ||
+    extracted?.Percentage ||
     0;
 
   const skills =
+    extracted?.skills ||
+    extracted?.Skills ||
     extracted?.skills_if_certificate ||
+    extracted?.[
+      "Skills if certificate"
+    ] ||
     "";
+
+  // SAFE DATA TYPES
+
+  const safeSubjects =
+    Array.isArray(subjects)
+      ? subjects
+      : [];
+
+  const safeMarks =
+    typeof marks === "object"
+      ? marks
+      : {};
+
+  const safeGrades =
+    typeof grades ===
+    "object"
+      ? grades
+      : {};
 
   return (
     <MainLayout>
@@ -299,7 +323,7 @@ const Extraction = () => {
 
             <Field
               label="Subjects"
-              value={`${subjects.length}`}
+              value={`${safeSubjects.length}`}
             />
           </div>
 
@@ -329,9 +353,9 @@ const Extraction = () => {
                 </thead>
 
                 <tbody>
-                  {subjects.length >
+                  {safeSubjects.length >
                   0 ? (
-                    subjects.map(
+                    safeSubjects.map(
                       (
                         subject,
                         index
@@ -360,9 +384,9 @@ const Extraction = () => {
                             <input
                               type="text"
                               defaultValue={
-                                marks[
-                                  index
-                                ] ??
+                                safeMarks?.[
+                                  subject
+                                ] ||
                                 ""
                               }
                               className="w-full rounded-xl border border-white/10 bg-[#1b2140] px-4 py-3 text-sm outline-none"
@@ -375,9 +399,9 @@ const Extraction = () => {
                             <input
                               type="text"
                               defaultValue={
-                                grades[
-                                  index
-                                ] ??
+                                safeGrades?.[
+                                  subject
+                                ] ||
                                 ""
                               }
                               className="w-full rounded-xl border border-white/10 bg-[#1b2140] px-4 py-3 text-sm outline-none"
